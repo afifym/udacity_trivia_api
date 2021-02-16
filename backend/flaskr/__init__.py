@@ -111,25 +111,23 @@ def create_app(test_config=None):
 
     @app.route('/questions/<int:id>', methods=['DELETE'])
     def delete_question(id):
-        try:
-            question = Question.query.filter(Question.id == id).one_or_none()
+        question = Question.query.filter(Question.id == id).one_or_none()
+        print('###############', file=sys.stderr)
+        print(question, file=sys.stderr)
 
-            if question is None:
-                abort(404)
+        if question == None:
+            abort(404)
 
-            question.delete()
-            selection = Question.query.order_by(Question.id).all()
-            current_questions = paginate_questions(request, selection)
+        question.delete()
+        selection = Question.query.order_by(Question.id).all()
+        current_questions = paginate_questions(request, selection)
 
-            return jsonify({
-                'success': True,
-                'deleted': question.id,
-                'questions': current_questions,
-                "total_questions": len(Question.query.all())
-            })
-
-        except:
-            abort(422)
+        return jsonify({
+            'success': True,
+            'deleted': question.id,
+            'questions': current_questions,
+            "total_questions": len(Question.query.all())
+        })
 
     '''
     @TODO:
@@ -213,6 +211,9 @@ def create_app(test_config=None):
         questions = Question.query.filter(Question.category == id).all()
         formatted = [q.format() for q in questions]
 
+        if(len(questions) == 0):
+            abort(404)
+
         return jsonify({
             'success': True,
             'questions': formatted,
@@ -232,13 +233,17 @@ def create_app(test_config=None):
 
     @app.route('/quizzes', methods=['POST'])
     def start_game():
+        print('--------------------', file=sys.stderr)
         body = request.json
         print(body, file=sys.stderr)
 
         category = body.get('quiz_category')
         previous_questions = body.get('previous_questions')
 
-        if category['id'] == '0':
+        if (not category) or (not previous_questions):
+            abort(422)
+
+        if category['id'] == 0:
             questions = Question.query.all()
         else:
             questions = Question.query.filter_by(
