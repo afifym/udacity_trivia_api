@@ -31,20 +31,19 @@ def create_app(test_config=None):
     setup_db(app)
 
     '''
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-    '''
-    CORS(app, resources={'/': {'origins': '*'}})
+  @Done: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  '''
+    CORS(app, resources={"/": {"origins": "*"}})
 
     '''
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    '''
+  @Done: Use the after_request decorator to set Access-Control-Allow
+  '''
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Headers',
-                             'Content-Type: application/json, Authorization,true')
+                             'Content-Type, Authorization, true')
         response.headers.add('Access-Control-Allow-Methods',
-                             'GET,PUT,POST,DELETE,OPTIONS')
-
+                             'GET, PATCH, PUT, POST, DELETE, OPTIONS')
         return response
 
     '''
@@ -60,13 +59,13 @@ def create_app(test_config=None):
         if len(categories) == 0:
             abort(404)
 
-        categ_names = dict()
+        category_dict = dict()
         for c in categories:
-            categ_names[c.id] = c.type
+            category_dict[c.id] = c.type
 
         return jsonify({
             'success': True,
-            'categories': categ_names
+            'categories': category_dict
         })
 
     '''
@@ -183,10 +182,11 @@ def create_app(test_config=None):
       Try using the word "title" to start.
       '''
 
-    @app.route('/questions/search', methods=['POST'])
+    @app.route('/questions/search', methods=['GET', 'POST'])
     def search_for_questions():
+        print('--------------------', file=sys.stderr)
         body = request.json
-        search_term = body.get('search_term')
+        search_term = body['searchTerm']
 
         if search_term:
             questions = Question.query.filter(
@@ -230,28 +230,19 @@ def create_app(test_config=None):
       and shown whether they were correct or not.
       '''
 
-    @app.route('/quizzes', methods=['OPTIONS'])
-    def start_game_preflight():
-        print('PREFLIGHT---------------------', file=sys.stderr)
-
-        return jsonify({
-            'success': True,
-        })
-
     @app.route('/quizzes', methods=['POST'])
     def start_game():
-        print('--------------------', file=sys.stderr)
         body = request.json
         print(body, file=sys.stderr)
 
         category = body.get('quiz_category')
         previous_questions = body.get('previous_questions')
 
-        if category.id == 0:
+        if category['id'] == '0':
             questions = Question.query.all()
         else:
             questions = Question.query.filter_by(
-                category == category.id).all()
+                category=category['id']).all()
 
         in_previous = True
         new_question = False
